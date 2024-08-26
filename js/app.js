@@ -4,6 +4,12 @@ let client = {
     order: []
 }
 
+const saucerCategories = {
+    1: 'Comida',
+    2: 'Bebidas',
+    3: 'Postres'
+};
+
 const btnCreateOrder = document.querySelector('#guardar-cliente');
 btnCreateOrder.addEventListener('click', createOrder);
 
@@ -45,9 +51,69 @@ function createOrder() {
 
     //show sections
     showSections();
+
+    //get Saucers data
+    getSaucers();
 };
 
-function showSections(){
+function showSections() {
     const sections = document.querySelectorAll('.d-none');
-    sections.forEach( section => section.classList.remove('d-none') );
+    sections.forEach(section => section.classList.remove('d-none'));
+};
+
+function getSaucers() {
+
+    const url = 'http://localhost:4000/platillos';
+
+    fetch(url)
+        .then( response => response.json())
+        .then( result => showSaucers(result))
+        .catch((error) => console.log(error));
+};
+
+// show Saucers data
+function showSaucers(saucers){
+    const content = document.querySelector('.contenido');
+
+    saucers.forEach( saucer => {
+
+        //creating the saucer row
+        const row = document.createElement('div');
+        row.classList.add('row', 'py-3', 'border-top');
+
+        //creating name column
+        const name = document.createElement('div');
+        name.classList.add('col-md-4');
+        name.textContent = saucer.nombre;
+
+        //creating price column
+        const price = document.createElement('div');
+        price.classList.add('col-md-2', 'fw-bold');
+        price.textContent = `$${saucer.precio}`;
+
+        //creating category column
+        const category = document.createElement('div');
+        category.classList.add('col-md-3');
+        category.textContent = saucerCategories[saucer.categoria];
+
+        //creating input column
+        const divInput = document.createElement('div');
+        divInput.classList.add('col-md-3');
+
+        const input = document.createElement('input');
+        input.classList.add('form-control');
+        input.type = 'number';
+        input.min = '0';
+        input.value = '0';
+        input.id = `product-${saucer.id}`;
+
+        //adding saucer info. to row
+        divInput.appendChild(input);
+        row.appendChild(name);
+        row.appendChild(price);
+        row.appendChild(category);
+        row.appendChild(divInput);
+        content.appendChild(row);
+
+    });
 };
