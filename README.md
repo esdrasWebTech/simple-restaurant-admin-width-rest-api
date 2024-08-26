@@ -7,7 +7,7 @@
 ```bash
 npm install -g json-server
 ```
-- Command to run de JSON Server:
+- Command to run the JSON Server:
 ```bash
 json-server --watch file-name.json --port 4000
 ```
