@@ -107,6 +107,12 @@ function showSaucers(saucers){
         input.value = '0';
         input.id = `product-${saucer.id}`;
 
+        //identifying the quantity of client saucer
+        input.onchange = function () {
+            const quantity = parseInt(input.value);
+            addSaucer({...saucer, quantity})
+        };
+
         //adding saucer info. to row
         divInput.appendChild(input);
         row.appendChild(name);
@@ -116,4 +122,41 @@ function showSaucers(saucers){
         content.appendChild(row);
 
     });
+};
+
+//get the quantity of saucers ordered
+function addSaucer(product){
+    let {order} = client;
+
+    if(product.quantity > 0){
+
+        //checks if the element already exists in the array
+        if( order.some( item => item.id === product.id ) ){
+
+            //the item already exists
+            const updatedOrder = order.map( item => {
+
+                if( item.id === product.id ){
+                    item.quantity = product.quantity;
+                }
+
+                return item;
+            });
+
+            client.order = [...updatedOrder];
+
+        }else{
+
+            //the item does not exist yet
+            client.order = [...order, product];
+        };
+
+    }else{
+
+        //check if there is a product with zero quantity in the order
+        const checkingOrder = order.filter( item => item.id !== product.id );
+        client.order = [...checkingOrder];
+    }
+
+    console.log(client.order);
 };
