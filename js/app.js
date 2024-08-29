@@ -66,16 +66,16 @@ function getSaucers() {
     const url = 'http://localhost:4000/platillos';
 
     fetch(url)
-        .then( response => response.json())
-        .then( result => showSaucers(result))
+        .then(response => response.json())
+        .then(result => showSaucers(result))
         .catch((error) => console.log(error));
 };
 
 // show Saucers data
-function showSaucers(saucers){
+function showSaucers(saucers) {
     const content = document.querySelector('.contenido');
 
-    saucers.forEach( saucer => {
+    saucers.forEach(saucer => {
 
         //creating the saucer row
         const row = document.createElement('div');
@@ -110,7 +110,7 @@ function showSaucers(saucers){
         //identifying the quantity of client saucer
         input.onchange = function () {
             const quantity = parseInt(input.value);
-            addSaucer({...saucer, quantity})
+            addSaucer({ ...saucer, quantity })
         };
 
         //adding saucer info. to row
@@ -125,18 +125,18 @@ function showSaucers(saucers){
 };
 
 //get the quantity of saucers ordered
-function addSaucer(product){
-    let {order} = client;
+function addSaucer(product) {
+    let { order } = client;
 
-    if(product.quantity > 0){
+    if (product.quantity > 0) {
 
         //checks if the element already exists in the array
-        if( order.some( item => item.id === product.id ) ){
+        if (order.some(item => item.id === product.id)) {
 
             //the item already exists
-            const updatedOrder = order.map( item => {
+            const updatedOrder = order.map(item => {
 
-                if( item.id === product.id ){
+                if (item.id === product.id) {
                     item.quantity = product.quantity;
                 }
 
@@ -145,18 +145,191 @@ function addSaucer(product){
 
             client.order = [...updatedOrder];
 
-        }else{
+        } else {
 
             //the item does not exist yet
             client.order = [...order, product];
         };
 
-    }else{
+    } else {
 
         //check if there is a product with zero quantity in the order
-        const checkingOrder = order.filter( item => item.id !== product.id );
+        const checkingOrder = order.filter(item => item.id !== product.id);
         client.order = [...checkingOrder];
     }
 
-    console.log(client.order);
+    //clear summary content
+    clearSummary();
+
+    //Checking if the order contains saucers
+    if (client.order.length) {
+        // Updating the consumption summary
+        showSummary();
+    } else {
+        //Showing empty summary message
+        emptySummary();
+    }
+};
+
+//show the summary
+function showSummary() {
+    const summaryContent = document.querySelector('#resumen .contenido');
+
+    //creating div summary info.
+    const summary = document.createElement('div');
+    summary.classList.add('col-md-6', 'card', 'py-5', 'px-3', 'shadow');
+
+    //creating table info.
+    const table = document.createElement('p');
+    table.textContent = 'Mesa: ';
+    table.classList.add('fw-bold');
+
+    const tableSpan = document.createElement('span');
+    tableSpan.textContent = client.table;
+    tableSpan.classList.add('fw-normal');
+
+    table.appendChild(tableSpan);
+
+    //creating time info.
+    const time = document.createElement('p');
+    time.textContent = 'Hora: ';
+    time.classList.add('fw-bold');
+
+    const timeSpan = document.createElement('span');
+    timeSpan.textContent = client.time;
+    timeSpan.classList.add('fw-normal');
+
+    time.appendChild(timeSpan);
+
+    //creating title section
+    const heading = document.createElement('h3');
+    heading.textContent = 'Platillos consumidos';
+    heading.classList.add('py-4', 'text-center');
+
+    //Iterating over the orders array
+    const group = document.createElement('ul');
+    group.classList.add('list-group');
+
+    const { order } = client
+
+    //showing elements of the order array
+    order.forEach(item => {
+        const { id, nombre, precio, quantity } = item;
+
+        //name element
+        const list = document.createElement('li');
+        list.classList.add('list-group-item');
+
+        const elementName = document.createElement('h4');
+        elementName.classList.add('my-4');
+        elementName.textContent = nombre;
+
+        list.appendChild(elementName);
+
+        //quantity element
+        const elementQuantity = document.createElement('p');
+        elementQuantity.classList.add('fw-bold');
+        elementQuantity.textContent = 'Cantidad: ';
+
+        const valueQuantity = document.createElement('span');
+        valueQuantity.classList.add('fw-normal');
+        valueQuantity.textContent = quantity;
+
+        elementQuantity.appendChild(valueQuantity);
+        list.appendChild(elementQuantity);
+
+        //price element
+        const elementPrice = document.createElement('p');
+        elementPrice.classList.add('fw-bold');
+        elementPrice.textContent = 'Precio: ';
+
+        const valuePrice = document.createElement('span');
+        valuePrice.classList.add('fw-normal');
+        valuePrice.textContent = `$${precio}`;
+
+        elementPrice.appendChild(valuePrice);
+        list.appendChild(elementPrice);
+
+        //subtotal element
+        const elementSubtotal = document.createElement('p');
+        elementSubtotal.classList.add('fw-bold');
+        elementSubtotal.textContent = 'Subtotal: ';
+
+        const valueSubtotal = document.createElement('span');
+        valueSubtotal.classList.add('fw-normal');
+        valueSubtotal.textContent = calculateSubtotal(precio, quantity);
+
+        elementSubtotal.appendChild(valueSubtotal);
+        list.appendChild(elementSubtotal);
+
+        //button to delete product
+        const deleteBtn = document.createElement('button');
+        deleteBtn.classList.add('btn', 'btn-danger');
+        deleteBtn.textContent = 'Eliminar de la orden';
+        deleteBtn.onclick = function () {
+            deleteProduct(id);
+        };
+
+        list.appendChild(deleteBtn);
+
+        //adding order list to group
+        group.appendChild(list);
+
+    });
+
+    //adding summary to content div
+    summary.appendChild(table);
+    summary.appendChild(time);
+    summary.appendChild(heading);
+    summary.appendChild(group);
+    summaryContent.appendChild(summary);
+};
+
+//clear the content in the summary
+function clearSummary() {
+    const summaryContent = document.querySelector('#resumen .contenido');
+
+    while (summaryContent.firstChild) {
+        summaryContent.removeChild(summaryContent.firstChild);
+    }
+};
+
+//calculates the subtotal of a product
+function calculateSubtotal(price, quantity) {
+    return `$${price * quantity}`;
+};
+
+//Remove a product from the list
+function deleteProduct(id) {
+    const { order } = client;
+    const updatedOrder = order.filter(item => item.id !== id);
+    client.order = [...updatedOrder];
+
+    //clear summary content
+    clearSummary();
+
+    //Checking if the order contains saucers
+    if (client.order.length) {
+        // Updating the consumption summary
+        showSummary();
+    }else{
+        //showing empty summary message
+        emptySummary();
+    }
+
+    //reset value of deleted product to zero
+    const deleteProductId = `#product-${id}`;
+    const productInput = document.querySelector(deleteProductId);
+    productInput.value = '0';
+
+};
+
+//Create empty summary message
+function emptySummary() {
+    const summaryContent = document.querySelector('#resumen .contenido');
+    const message = document.createElement('p');
+    message.classList.add('text-center');
+    message.textContent = 'Añade los elementos del pedido';
+
+    summaryContent.appendChild(message);
 };
