@@ -177,7 +177,12 @@ function showSummary() {
 
     //creating div summary info.
     const summary = document.createElement('div');
-    summary.classList.add('col-md-6', 'card', 'py-5', 'px-3', 'shadow');
+    summary.classList.add('col-md-6', 'card', 'py-3', 'px-3', 'shadow');
+
+    //creating title section
+    const heading = document.createElement('h3');
+    heading.textContent = 'Platillos consumidos';
+    heading.classList.add('py-2', 'text-center');    
 
     //creating table info.
     const table = document.createElement('p');
@@ -200,11 +205,6 @@ function showSummary() {
     timeSpan.classList.add('fw-normal');
 
     time.appendChild(timeSpan);
-
-    //creating title section
-    const heading = document.createElement('h3');
-    heading.textContent = 'Platillos consumidos';
-    heading.classList.add('py-4', 'text-center');
 
     //Iterating over the orders array
     const group = document.createElement('ul');
@@ -278,11 +278,14 @@ function showSummary() {
     });
 
     //adding summary to content div
+    summary.appendChild(heading);    
     summary.appendChild(table);
     summary.appendChild(time);
-    summary.appendChild(heading);
     summary.appendChild(group);
     summaryContent.appendChild(summary);
+
+    //show tip form 
+    tipForm();
 };
 
 //clear the content in the summary
@@ -333,3 +336,161 @@ function emptySummary() {
 
     summaryContent.appendChild(message);
 };
+
+//Create tip form 
+function tipForm(){
+    const summaryContent = document.querySelector('#resumen .contenido');
+
+    //creating div tip summary container
+    const summaryContainer = document.createElement('div');
+    summaryContainer.classList.add('col-md-6');
+
+    //creating div tip summary info.
+    const summary = document.createElement('div');
+    summary.classList.add('card', 'shadow', 'mx-2', 'px-3', 'py-3', 'tip-form');
+
+    //creating tip form title
+    const title = document.createElement('h3'); 
+    title.classList.add('py-2', 'text-center');
+    title.textContent = 'Propina';
+
+    //creating tip radio options 
+    //10%
+    const radio10Div = document.createElement('div');
+    radio10Div.classList.add('form-check');
+
+    const radio10 = document.createElement('input');
+    radio10.classList.add('form-check-input');
+    radio10.type = 'radio';
+    radio10.value = '10';
+    radio10.name = 'tip';
+
+    //calculating the tip 
+    radio10.onclick = calculateTip;
+
+    const radio10Label = document.createElement('label');
+    radio10Label.classList.add('form-check-label');
+    radio10Label.textContent = '10%';
+
+    radio10Div.appendChild(radio10);
+    radio10Div.appendChild(radio10Label);
+
+    //25%
+    const radio25Div = document.createElement('div');
+    radio25Div.classList.add('form-check');
+
+    const radio25 = document.createElement('input');
+    radio25.classList.add('form-check-input');
+    radio25.type = 'radio';
+    radio25.value = '25';
+    radio25.name = 'tip';
+
+    //calculating the tip 
+    radio25.onclick = calculateTip;
+
+    const radio25Label = document.createElement('label');
+    radio25Label.classList.add('form-check-label');
+    radio25Label.textContent = '25%';
+
+    radio25Div.appendChild(radio25);
+    radio25Div.appendChild(radio25Label);
+
+    //50%
+    const radio50Div = document.createElement('div');
+    radio50Div.classList.add('form-check');
+
+    const radio50 = document.createElement('input');
+    radio50.classList.add('form-check-input');
+    radio50.type = 'radio';
+    radio50.value = '50';
+    radio50.name = 'tip';
+
+    //calculating the tip 
+    radio50.onclick = calculateTip;
+
+    const radio50Label = document.createElement('label');
+    radio50Label.classList.add('form-check-label');
+    radio50Label.textContent = '50%';
+
+    radio50Div.appendChild(radio50);
+    radio50Div.appendChild(radio50Label);
+
+    //adding the content to the summary
+    summary.appendChild(title);
+    summary.appendChild(radio10Div);
+    summary.appendChild(radio25Div);
+    summary.appendChild(radio50Div);
+    summaryContainer.appendChild(summary);
+    summaryContent.appendChild(summaryContainer);
+}
+
+//Calculating tip and subtotal
+function calculateTip(){
+    const {order} = client;
+
+    //get order subtotal
+    let subtotalOrder = 0; 
+    order.forEach( item => {
+        subtotalOrder += item.precio * item.quantity;
+    });
+
+    //get tip value
+    const tipRadioValue = document.querySelector('[name="tip"]:checked').value;
+
+    //calculating tip
+    const tip = ((subtotalOrder * parseInt(tipRadioValue)) / 100);
+
+    //get total to pay 
+    const total = subtotalOrder + tip;
+
+    //showing payment information
+    const tipForm = document.querySelector('.tip-form'); 
+    const totalsDiv = document.createElement('div');
+    totalsDiv.classList.add('payment-total');
+
+    //creating subtotal info.
+    const subtotalLabel = document.createElement('p');
+    subtotalLabel.classList.add('fs-4', 'fw-bold', 'my-2');
+    subtotalLabel.textContent = 'Subtotal de consumo: ';
+
+    const subtotalSpan = document.createElement('span');
+    subtotalSpan.classList.add('fw-normal');
+    subtotalSpan.textContent = `$${subtotalOrder}`;
+
+    subtotalLabel.appendChild(subtotalSpan);
+    totalsDiv.appendChild(subtotalLabel);
+
+    //creating tip info.
+    const tipLabel = document.createElement('p');
+    tipLabel.classList.add('fs-4', 'fw-bold', 'my-2');
+    tipLabel.textContent = 'Propina: ';
+
+    const tipSpan = document.createElement('span');
+    tipSpan.classList.add('fw-normal');
+    tipSpan.textContent = `$${tip}`;
+
+    tipLabel.appendChild(tipSpan);
+    totalsDiv.appendChild(tipLabel);
+
+    //creating total to pay info.
+    const totalLabel = document.createElement('p');
+    totalLabel.classList.add('fs-4', 'fw-bold', 'my-2');
+    totalLabel.textContent = 'Total a pagar: ';
+
+    const totalSpan = document.createElement('span');
+    totalSpan.classList.add('fw-normal');
+    totalSpan.textContent = `$${total}`;
+
+    totalLabel.appendChild(totalSpan);
+    totalsDiv.appendChild(totalLabel);
+
+    //remove previous payment information
+    const paymentTotal = document.querySelector('.payment-total');
+    
+    if(paymentTotal){
+        paymentTotal.remove();
+    }
+
+    //adding totals to tip form
+    tipForm.appendChild(totalsDiv);
+}
